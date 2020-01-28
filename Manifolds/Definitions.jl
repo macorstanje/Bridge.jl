@@ -19,6 +19,7 @@ outer(x,y) = x*y'
 
 abstract type EmbeddedManifold <: Manifold end
 
+
 """
     Settings for the sphere 𝕊²
 """

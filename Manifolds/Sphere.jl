@@ -4,8 +4,8 @@ using StaticArrays, Distributions
 using Plots
 using Bridge
 
-include("SpherePlots.jl")
 include("Definitions.jl")
+include("SpherePlots.jl")
 
 T = 1.0
 dt = 1/1000
@@ -21,7 +21,7 @@ extractcomp(v, i) = map(x->x[i], v)
 """
     The object SphereDiffusion(σ, 𝕊) can be used to generate a diffusion
     on the sphere 𝕊. We will focus on the diffusion equation
-        `` dX_t = σ P(X_t)∘dW_t ``
+        `` dX_t = Σ^½ P(X_t)∘dW_t ``
     where σ ∈ ℝ
 """
 

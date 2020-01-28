@@ -78,14 +78,14 @@ function SphereScatterPlot(X::T , Y::T, Z::T, 𝕊::Sphere) where {T<:AbstractAr
     Plots.plot(X,Y,Z,
                 axis = false,
                 seriestype = :scatter,
-                color= :red,
-                markersize = 2,
+                color= palette(:default)[1],
+                markersize = 1,
                 legend = false,
                 label = false) #, xlabel = "x", ylabel = "y", zlabel = "z")
     Plots.surface!( x,y,z,
                 axis=false,
                 alpha=0.8,
-                color = :grey) # fill(RGBA(1.,1.,1.,0.8),lenu,lenv))
+                color = fill(RGBA(1.,1.,1.,0.8),lenu,lenv)) # fill(RGBA(1.,1.,1.,0.8),lenu,lenv))
 end
 
 # with a target point
