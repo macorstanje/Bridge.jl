@@ -1,6 +1,4 @@
-using ForwardDiff
-using LinearAlgebra
-using StaticArrays, Distributions
+using Distributions
 using Plots
 using Bridge
 

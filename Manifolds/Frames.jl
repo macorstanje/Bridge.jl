@@ -1,15 +1,46 @@
+using ForwardDiff
+
+include("Definitions.jl")
+# Returns a base if the ambient space is of dimension 3 for 𝑇ₓℳ
+struct TangentSpace{Tx,TM}
+    x::Tx
+    ℳ::TM
+    base
+    function TangentSpace(x::Tx, ℳ::TM) where {Tx <: AbstractArray, TM <: EmbeddedManifold}
+        ∇f = ForwardDiff.gradient( (y)->f(y,ℳ) , x)
+        if ∇f[1] == 0. && ∇f[2] == 0
+            e₁ = [1.,0.,0.]
+        else
+            e₁::Tx = normalize([-∇f[2], ∇f[1], 0.])
+        end
+        e₂::Tx = normalize(cross(∇f, e₁))
+        e₃::Tx = normalize(∇f)
+        base = (e₁, e₂, e₃)
+        new{Tx,TM}(x, ℳ, base)
+    end
+end
+
+# Projection onto a tangent space in terms of the basis specified in the struct
+function P(T::TangentSpace)
+    x = T.x
+    ℳ = T.ℳ
+    e₁, e₂, e₃ = T.base
+    return [1. 0. 0. ; 0. 1. 0. ]*inv([e₁ e₂ e₃])*P(x, ℳ)
+end
+
+
 """
     Elements of F(ℳ) consist of a position x and a GL(d, ℝ)-matrix ν that
-    represents a basis for Tₓℳ
+    represents a basis for 𝑇ₓℳ
 """
 
 struct Frame{Tx, Tν}
     x::Tx
     ν::Tν
     function Frame(x::Tx, ν::Tν) where {Tx, Tν <: AbstractArray}
-        if rank(ν) != length(x)
-            error("A is not of full rank")
-        end
+        # if rank(ν) != length(x)
+        #     error("A is not of full rank")
+        # end
         new{Tx, Tν}(x, ν)
     end
 end
@@ -40,7 +71,6 @@ include("FrameBundles.jl")
 """
     Now let us create a stochastic process on the frame bundle of the 2-sphere 𝕊²
 """
-𝕊 = Sphere(1.0)
 
 
 struct SphereDiffusion <: FrameBundleProcess

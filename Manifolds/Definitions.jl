@@ -1,5 +1,6 @@
 using ForwardDiff
 using LinearAlgebra
+using StaticArrays
 
 abstract type Manifold end
 abstract type SDEForm end
