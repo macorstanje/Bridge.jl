@@ -11,7 +11,7 @@ endpoint(y, P) = y
 
 import Bridge.solve
 solve(::StratonovichEuler, u, W::Bridge.SamplePath, P::FrameBundleProcess) = let X = Bridge.samplepath(W.tt, zero(u)); solve!(StratonovichEuler(), X, u, W, P); X end
-function solve!(::StratonovichEuler, Y, u::Frame, W::Bridge.SamplePath, P::FrameBundleProcess)
+function solve!(::StratonovichEuler, Y, u::Frame, W::Bridge.SamplePath, ℙ::FrameBundleProcess)
     N = length(W)
     N != length(Y) && error("Y and W differ in length")
 
@@ -22,12 +22,12 @@ function solve!(::StratonovichEuler, Y, u::Frame, W::Bridge.SamplePath, P::Frame
 
     y::typeof(u) = u
 
-    for i in 1:N-1
-        dt = tt[i+1] - tt[i]
-        dw = ww[i+1] - ww[i]
-        yy[.., i] = y
-        yᴱ = y + Bridge.σ(tt[i], y, P)*dw
-        y = y + .5*(Bridge.σ(tt[i+1], yᴱ,P) + Bridge.σ(tt[i], y, P))*dw
+    for k in 1:N-1
+        dt = tt[k+1] - tt[k]
+        dw = ww[k+1] - ww[k]
+        yy[.., k] = y
+        yᴱ = y + Bridge.H(y, ℙ)*dw
+        y = y + .5*(Bridge.H(yᴱ, ℙ) + Bridge.H(y, ℙ))*dw
     end
     yy[..,N] = endpoint(y, P)
     Y
@@ -45,10 +45,10 @@ function solve!(::StratonovichEuler, Y, u::Frame, W::Bridge.AbstractPath, P::Fra
 
     y::typeof(u) = u
 
-    for (i, t, dt, dw) in increments(W)
-        yy[.., i] = y
-        yᴱ = y + Bridge.σ(tt[i], y, P)*dw
-        y = y + .5*(Bridge.σ(tt[i+1], yᴱ,P) + Bridge.σ(tt[i], y, P))*dw
+    for (k, t, dt, dw) in increments(W)
+        yy[.., k] = y
+        yᴱ = y + Bridge.H(y, ℙ)*dw
+        y = y + .5*(Bridge.H(yᴱ, ℙ) + Bridge.H(y, ℙ))*dw
     end
     yy[.., N] = endpoint(y, P)
     Y

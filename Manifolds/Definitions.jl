@@ -14,8 +14,8 @@ outer(x) = x*x'
 outer(x,y) = x*y'
 
 """
-    EmbeddedManifold creates a manifold ``M = f^{-1}({0})`` where
-    ``f`` should be a smooth function ``ℝ^N → ℝ``
+    EmbeddedManifold creates a manifold ``M = f^{-1}({0})`` of dimension d=N-n
+    where ``f`` should be a smooth function ``ℝ^N → ℝ^n``
 """
 
 abstract type EmbeddedManifold <: Manifold end
@@ -44,6 +44,12 @@ end
 function P(x::T, 𝕊::Sphere) where {T<:AbstractArray}
     R, x, y, z = 𝕊.R, x[1], x[2], x[3]
     return [R^2-x^2 -x*y -x*z ; -x*y R^2-y^2 -y*z ; -x*z -y*z R^2-z^2]
+end
+
+# Stereographical projection
+function F(q::T, 𝕊::Sphere) where {T<:AbstractArray}
+    R, u, v = 𝕊.R, q[1], q[2]
+    return [ 2*u/(u^2+v^2+1) , 2*v/(u^2+v^2+1) , (u^2+v^2-1)/(u^2+v^2+1)  ]
 end
 
 """
@@ -105,3 +111,36 @@ function P(x::T, ℙ::Paraboloid) where {T<:AbstractArray}
     n = ∇f./norm(∇f)
     return Matrix(Diagonal(ones(d))) .- n*n'
 end
+
+"""
+    If a manifold is given as result of a function F:ℝᵈ → ℝᴺ, we obtain a
+    Riemannian metric and Christoffel symbols for the Levi-Civita connection
+"""
+
+# Riemannian metric in terms of Stereographical projection
+function g(q::T, ℳ::TM) where {T<:AbstractArray, TM<:EmbeddedManifold}
+    J = ForwardDiff.jacobian((p) -> F(p, ℳ), q)
+    return J'*J
+end
+
+# Returns the cometric
+function gˣ(q::T, ℳ::TM) where {T<:AbstractArray, TM<:EmbeddedManifold}
+    return inv(g(q, ℳ))
+end
+
+# Christoffel symbols Γ^i_{jk}
+function Γ(q::T, ℳ::TM) where {T<:AbstractArray, TM<:EmbeddedManifold}
+    d = length(q)
+    ∂g = reshape(ForwardDiff.jacobian(x -> g(x,ℳ), q), d, d, d)
+    out = copy(∂g)
+    for i in 1:d
+        for j in 1:d
+            for k in 1:d
+                out[i,j,k] = .5*sum([gˣ(x, ℳ)[i,l]*(∂g[k,l,i] + ∂g[l,j,k] - ∂g[j,k,l]) for l in 1:d])
+            end
+        end
+    end
+    return out
+end
+
+            
